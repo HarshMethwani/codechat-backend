@@ -14,6 +14,6 @@ def get_repo_path(repo_url:str):
 def clone_repo(repo_url:str):
     repo_path = get_repo_path(repo_url)
     if os.path.exists(repo_path):
-        return f"Repository already exists with path {repo_path}"
+        return f"{repo_path}"
     Repo.clone_from(repo_url,repo_path)
     return repo_path

@@ -1,7 +1,7 @@
 import os
 from typing import List
 INCLUDE_EXTENSIONS = {
-    ".py", ".js", ".ts", ".tsx",
+    ".py", ".js", ".ts", ".tsx",".jsx",
     ".java", ".go", ".rs",
     ".md", ".txt", ".json", ".yaml", ".yml"
 }
@@ -15,15 +15,15 @@ EXCLUDE_DIRS = {
 MAX_FILE_SIZE = 200_000  
 
 
-def should_include_file(file_path:str)->bool:
+def should_include_file(file_path:str)->tuple:
     _,ext = os.path.splitext(file_path)
     if ext.lower() not in INCLUDE_EXTENSIONS:
-        return False
+        return (False,None)
     
     if os.path.getsize(file_path) > MAX_FILE_SIZE:
-        return False
+        return (False,None)
     
-    return True
+    return (True,ext)
     
 
 def collect_files(repo_path:str)->List[str]:
@@ -32,8 +32,9 @@ def collect_files(repo_path:str)->List[str]:
         dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
         for _file in file:
             full_path  = os.path.join(root,_file)
-            if should_include_file(full_path):
-                collected.append(full_path)
+            should_include = should_include_file(full_path)
+            if should_include[0]:
+                collected.append({'path':full_path,'ext':should_include[1]})
     
     return collected
 

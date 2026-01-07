@@ -146,5 +146,4 @@ def chunk_file(file_path:str,ext:str,overlap:int=150, chunk_size:int = 800)->Lis
         "content":file_content[start:end]
         })
         start = end - overlap
-    return chunk
-            
+    return chunk         

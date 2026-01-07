@@ -18,7 +18,9 @@ dependencies = [
     "tree-sitter-go (>=0.25.0,<0.26.0)",
     "tree-sitter-rust (>=0.24.0,<0.25.0)",
     "chromadb (>=1.4.0,<2.0.0)",
-    "sentence-transformers (>=5.2.0,<6.0.0)"
+    "sentence-transformers (>=5.2.0,<6.0.0)",
+    "google-genai (>=1.56.0,<2.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
 ]
 
 

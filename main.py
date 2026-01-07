@@ -5,7 +5,9 @@ from pydantic import BaseModel, HttpUrl
 from services.filter_files import collect_files
 from services.embedding_service import search, embed_and_store,get_collection_name
 from services.chunk_service import extract_chunks_from_file
+from services.llm_service import build_context,call_llm
 from pathlib import Path
+from typing import List
 app = FastAPI()
 
 logging.basicConfig(filename='logger.log',format='%(asctime)s %(message)s',filemode='w')
@@ -17,6 +19,14 @@ class CloneRepository(BaseModel):
 
 class RepoPath(BaseModel):
     repo_path:str
+
+class ChatRequest(BaseModel):
+    repo_path:str
+    question:str
+
+class ChatResponse(BaseModel):
+    answer:str
+    sources:List[dict]
 
 @app.get('/health')
 def health():
@@ -46,3 +56,13 @@ def preprocess(request:RepoPath):
     repo_name = get_collection_name(request.repo_path)
     count = embed_and_store(all_chunks,repo_name)
     return {"status":"success","chunks_stored":count}
+
+
+@app.post('/chat')
+def chat(request:ChatRequest):
+    repo_name = get_collection_name(request.repo_path)
+    relevant_chunks = search(request.question,repo_name)
+    context = build_context(relevant_chunks)
+    sources = [{"file": str(c["metadata"]["file_path"]).replace("./data/repos","")} for c in relevant_chunks]
+    answer = call_llm(request.question,context)
+    return ChatResponse(answer=answer, sources=sources)

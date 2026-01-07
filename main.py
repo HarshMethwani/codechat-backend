@@ -3,6 +3,9 @@ import logging
 from services.git_service import clone_repo
 from pydantic import BaseModel, HttpUrl
 from services.filter_files import collect_files
+from services.embedding_service import search, embed_and_store,get_collection_name
+from services.chunk_service import extract_chunks_from_file
+from pathlib import Path
 app = FastAPI()
 
 logging.basicConfig(filename='logger.log',format='%(asctime)s %(message)s',filemode='w')
@@ -33,5 +36,13 @@ def clone_repository(request:CloneRepository):
     
 @app.post("/preprocess")
 def preprocess(request:RepoPath):
-    collected = collect_files(request.repo_path)
-    return {'data':collected}
+    files = collect_files(request.repo_path)
+    all_chunks = []
+    for file in files:
+        ext = Path(file["path"]).suffix
+        chunks = extract_chunks_from_file(file["path"],ext)
+        all_chunks.extend(chunks)
+    
+    repo_name = get_collection_name(request.repo_path)
+    count = embed_and_store(all_chunks,repo_name)
+    return {"status":"success","chunks_stored":count}

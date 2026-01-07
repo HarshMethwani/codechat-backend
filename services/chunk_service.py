@@ -8,7 +8,7 @@ import tree_sitter_rust as tsrust
 from typing import List
 from pydantic import BaseModel
 from typing import Optional
-from filter_files import clean_file
+from services.filter_files import clean_file
 from pathlib import Path
 class CodeChunk(BaseModel):
     file_path:str

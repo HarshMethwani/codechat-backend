@@ -1,14 +1,21 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
-from chunk_service import CodeChunk
+from services.chunk_service import CodeChunk
 from typing import List
-
+from pathlib import Path
 
 
 
 CHROMA_PATH = "./data/vectorstore"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 _model = None
+
+def get_collection_name(repo_path:str)->str:
+    parts = Path(repo_path).parts
+    owner = parts[-2]
+    repo = parts[-1]
+    return f"{owner}_{repo}".lower()
+
 def get_embedding_model() -> SentenceTransformer:
       global _model
       if _model is None:     
@@ -26,11 +33,10 @@ def get_or_create_collection(repo_name: str):
 def embed_and_store(chunks: List[CodeChunk], repo_name: str) -> int:
         model = get_embedding_model()
         collection = get_or_create_collection(repo_name)
-        id = [f"{chunk.file_path}_{i}" for i, chunk in enumerate(chunks)]
-        documents = [e.content for e in chunks]
-        metadata = [{"file_path":e.file_path,"name":e.name,"chunk_size":e.chunk_size} for e in chunks]
-        embeddings = []
-        contents = [chunk.content for chunk in chunks]
+        id = [f"{chunk['file_path']}_{i}" for i, chunk in enumerate(chunks)]
+        documents = [e['content'] for e in chunks]
+        metadata = [{"file_path":e['file_path'],"name":e['name'],"chunk_size":e['chunk_size']} for e in chunks]
+        contents = [chunk['content'] for chunk in chunks]
         embeddings = model.encode(contents)
         collection.add(
                 ids=id,
@@ -47,7 +53,7 @@ def search(query: str, repo_name: str, top_k: int = 5) -> List[dict]:
 
       embedded_query = model.encode(query).tolist()
       results = collection.query(
-            query_texts=[embedded_query],
+            query_embeddings=[embedded_query],
             n_results=top_k
       )
       output = []

@@ -81,23 +81,25 @@ NODE_TYPE_MAP = {
 }
 
 def get_parser(ext) -> Parser | None:
-    if LANGUAGE_MAP[ext]:
-        language = Language(LANGUAGE_MAP[ext][1])
-        return Parser(language)
-    else:
+    if ext not in LANGUAGE_MAP:
         return None
+    code_lang = Language(LANGUAGE_MAP[ext][1])
+    parser = Parser(code_lang)
+    return parser
     
 
 def extract_chunks_from_file(file_path: str,ext:str) -> List[CodeChunk]:
     content = clean_file(file_path)
     if(len(content)>0):
-        if ext in LANGUAGE_MAP[ext]:
+        if ext in LANGUAGE_MAP:
+            print("using parse")
             parser = get_parser(ext)
-            tree = parser.parse(bytes(content),'utf8')
+            tree = parser.parse(content.encode("utf-8"))
             root_node = tree.root_node
             chunks = walk_tree(root_node,ext,file_path)
             return chunks
         else:
+            print("using default")
             return chunk_file(file_path,ext)
 
 def walk_tree(node,ext,file_path)->list:
@@ -139,7 +141,7 @@ def chunk_file(file_path:str,ext:str,overlap:int=150, chunk_size:int = 800)->Lis
         end = start + chunk_size
         chunk.append({
         "file_path":file_path,
-        "chunk_size":chunk_size,
+        "chunk_size":end-start,
         "name":Path(file_path).name,
         "content":file_content[start:end]
         })

@@ -23,6 +23,7 @@ class RepoPath(BaseModel):
 class ChatRequest(BaseModel):
     repo_path:str
     question:str
+    history:List[dict] = []
 
 class ChatResponse(BaseModel):
     answer:str
@@ -64,5 +65,6 @@ def chat(request:ChatRequest):
     relevant_chunks = search(request.question,repo_name)
     context = build_context(relevant_chunks)
     sources = [{"file": str(c["metadata"]["file_path"]).replace("./data/repos","")} for c in relevant_chunks]
-    answer = call_llm(request.question,context)
+    answer = call_llm(request.question,request.history,context)
     return ChatResponse(answer=answer, sources=sources)
+

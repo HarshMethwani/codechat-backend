@@ -15,10 +15,19 @@ def build_context(chunks: List[dict]) -> str:
       return context
             
 
-def call_llm(question: str, context: str) -> str:
+def call_llm(question: str,history:List[dict], context: str) -> str:
       client = genai.Client(api_key=GEMINI_KEY)
+      messages = []
+      if history:
+            for msg in history:
+                  messages.append({
+                        "role":msg['role'],
+                        "parts":[{"text":msg["content"]}]
+                  })
+      
+      messages.append({"role":"user","parts":[{"text":f"Context:{context} Question:{question}"}]})
       response = client.models.generate_content(
-        model="gemini-2.5-flash-lite", contents=f"Context:{context} Question:{question}",
-          config=types.GenerateContentConfig( system_instruction="You are a code assistant. Answer based on the code context provided.")
+        model="gemini-2.5-flash-lite", contents=messages,
+          config=types.GenerateContentConfig( system_instruction="You are a helpful code assistant. Consider the conversation history when responding. Use the provided code context to answer code questions.")
         )
       return response.text

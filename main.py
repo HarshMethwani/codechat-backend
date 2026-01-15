@@ -21,6 +21,7 @@ origins = [
     "http://localhost",
     "http://localhost:8080",
     "http://localhost:5173",
+    "https://codechat-frontend-iota.vercel.app"
 ]
 
 app.add_middleware(

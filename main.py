@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import logging
+import os
 from services.git_service import clone_repo
 from pydantic import BaseModel, HttpUrl
 from services.filter_files import collect_files
@@ -15,14 +16,18 @@ app = FastAPI()
 logging.basicConfig(filename='logger.log',format='%(asctime)s %(message)s',filemode='w')
 logger = logging.getLogger()
 
+# CORS origins - includes localhost for dev and Vercel for production
 origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
     "http://localhost",
     "http://localhost:8080",
     "http://localhost:5173",
-    "https://codechat-frontend-iota.vercel.app"
+    "https://codechat-frontend-iota.vercel.app",
 ]
+
+# Add additional origins from environment variable if set
+extra_origins = os.getenv("CORS_ORIGINS", "")
+if extra_origins:
+    origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +35,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Allow all Vercel preview URLs
 )
 
 class CloneRepository(BaseModel):

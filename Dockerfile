@@ -25,8 +25,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Upgrade pip and install Python dependencies
+# Upgrade pip and install CPU-only PyTorch first (saves ~2.5GB vs CUDA version)
+# Then install other dependencies
 RUN pip install --upgrade pip && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code

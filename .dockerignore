@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+env
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Data directories (will be created fresh in container)
+data/
+
+# Logs
+*.log
+logger.log
+
+# Environment (secrets should be passed at runtime)
+.env
+.env.*
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.docker
+
+# Poetry
+poetry.lock
+
+# Misc
+.DS_Store
+*.md

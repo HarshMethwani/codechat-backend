@@ -30,21 +30,30 @@ def get_or_create_collection(repo_name: str):
 
 
 
-def embed_and_store(chunks: List[CodeChunk], repo_name: str) -> int:
+def embed_and_store(chunks: List[CodeChunk], repo_name: str, batch_size: int = 32) -> int:
         model = get_embedding_model()
         collection = get_or_create_collection(repo_name)
-        id = [f"{chunk['file_path']}_{i}" for i, chunk in enumerate(chunks)]
-        documents = [e['content'] for e in chunks]
-        metadata = [{"file_path":e['file_path'],"name":e['name'],"chunk_size":e['chunk_size']} for e in chunks]
-        contents = [chunk['content'] for chunk in chunks]
-        embeddings = model.encode(contents)
-        collection.add(
-                ids=id,
-                embeddings=embeddings,
-                documents=documents,
-                metadatas=metadata
-            )
-        return len(chunks)
+
+        total_stored = 0
+        # Process in batches to avoid OOM
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i:i + batch_size]
+
+            ids = [f"{chunk['file_path']}_{i + j}" for j, chunk in enumerate(batch)]
+            documents = [e['content'] for e in batch]
+            metadata = [{"file_path":e['file_path'],"name":e['name'],"chunk_size":e['chunk_size']} for e in batch]
+            contents = [chunk['content'] for chunk in batch]
+
+            embeddings = model.encode(contents)
+            collection.add(
+                    ids=ids,
+                    embeddings=embeddings.tolist(),
+                    documents=documents,
+                    metadatas=metadata
+                )
+            total_stored += len(batch)
+
+        return total_stored
 
 
 def search(query: str, repo_name: str, top_k: int = 5) -> List[dict]:

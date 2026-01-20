@@ -9,6 +9,12 @@ services:
       # Persist cloned repos and vector store
       - codechat_data:/app/data
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
